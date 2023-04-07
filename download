@@ -1,0 +1,1014 @@
+#!venv/bin/python
+
+import asyncio
+import io
+import json
+import math
+import os
+import re
+import sys
+import urllib
+
+os.environ['PYPPETEER_CHROMIUM_REVISION'] = '1089147'
+#os.environ['PYPPETEER_CHROMIUM_REVISION'] = '1058933'
+
+#import pyppeteer
+from pyppeteer import launch
+from PIL import Image
+from zipfile import ZipFile
+
+RE_ARGS = {
+    'id': re.compile(r'^[0-9a-zA-Z-]+$'),
+    'key': re.compile(r'^[0-9a-zA-Z-]+$'),
+    'template': re.compile(r'^[a-z0-9-]+$', re.IGNORECASE),
+    'output': re.compile(r'^(png|pdf|html)$'),
+}
+
+RE_VALID_SEQUENCE = re.compile(r'^\s*[0-9]+(\s*,\s*[0-9]+)*$')
+
+PNG_WIDTH = 800
+PNG_HEIGHT = 1200
+ROOT = os.path.dirname(__file__)
+
+class CDU_BASE():
+    def __init__(self):
+        self.files = {}
+
+class CDU_DataLoader():
+    '''
+    Used by A10C to auto-enter waypoints
+
+    http://www.virtual-jabog32.de/forum/viewtopic.php?f=38&t=11569
+    '''
+
+    def __init__(self, mdc, key, mission_id):
+
+        self._mdc = mdc
+        self._wp_names = {}
+        self._files = {}
+        self._alt = 0
+        self.generate()
+
+    @property
+    def files(self):
+        return self._files
+
+    def generate(self):
+
+        main_fp = self.generate_main_fp()
+        if main_fp:
+            self._files['main.txt'] = main_fp
+
+        poi_fp = self.generate_poi_fp()
+        if poi_fp:
+            self._files['poi.txt'] = poi_fp
+
+    def get_waypoint_line(self, wp, prefix):
+
+        # Skip waypoints that have empty floats
+        try:
+            lat = self.fmt_ll(wp['lat'])
+            lon = self.fmt_ll(wp['lon'], False)
+        except KeyError:
+            lat = None
+            lon = None
+
+        if 'tot' in wp:
+            tot = 'T' + wp['tot'].replace(':', '') + '00'
+        else:
+            tot = 'T000000'
+
+        try:
+            self._alt = int(wp['alt'])
+        except (ValueError, KeyError):
+            # We can pass now to hit the updated alt
+            pass
+
+        if not lat or not lon:
+            raise Exception("Missing lat / lon")
+
+        # We prefix the name with M to help ensure no collisions in game
+        # waypoints are limited to 12 characters, so we truncate
+        name = (prefix + " " + wp['name'])[0:12].strip()
+
+        # They also can't be identical, so if we encounter the same name
+        # add "space ID"
+        if name in self._wp_names:
+            self._wp_names[name] += 1
+            suffix = " " + str(self._wp_names[name])
+            remove = (len(suffix) + len(name)) - 12
+            if remove > 0:
+                name = name[0:-remove]
+            name += suffix
+        else:
+            self._wp_names[name] = 1
+
+        # However, when we write them out, we pad them all to 12 so
+        # autocomplete doesn't autocomplete when subsequent points are
+        # prefixed
+        #
+        # E.g: Racetrack followed by Race
+        return "{} {} EL{:05} {} {:12}\n".format(
+            lat,
+            lon,
+            self._alt,
+            tot,
+            name)
+
+    def generate_main_fp(self):
+
+        content = ""
+        self._alt = 0
+        for wp in self._mdc['waypoint']['waypoints']:
+            try:
+                content += self.get_waypoint_line(wp, 'M')
+            except Exception as e:
+                continue
+
+        return content
+
+    def generate_poi_fp(self):
+        content = ""
+        self._alt = 0
+        for wp in self._mdc['waypoint']['poi']:
+            try:
+                content += self.get_waypoint_line(wp, 'P')
+            except Exception as e:
+                continue
+
+        return content
+
+    def fmt_ll(self, wp, lat=True):
+
+        try:
+            work = float(wp)
+        except ValueError:
+            return None
+
+        positive = work > 0
+        work = abs(work)
+
+        degs = math.floor(work)
+        work -= degs
+        work *= 60
+
+        mins = math.floor(work)
+        work -= mins
+        work *= 1000
+
+        secs = round(work)
+
+        if secs == 1000:
+            mins += 1
+            secs = 0
+        if mins == 60:
+            degs += 1
+            mins = 0
+
+        if lat:
+            lat_str = 'N' if positive else 'S'
+        else:
+            lat_str = 'E' if positive else 'W'
+
+        if lat:
+            lat_str += '%02d' % degs
+        else:
+            lat_str += '%03d' % degs
+
+        lat_str += '%02d' % mins
+        lat_str += '%03d' % secs
+
+        return lat_str
+
+
+class MDC_LOADER():
+    '''
+    Used by MDC Loader to auto-enter waypoints, sequence etc.
+    '''
+
+    def __init__(self, mdc, key, mission_id):
+
+        self._mdc = mdc
+        self._mission_id = mission_id
+        self._key = key
+        self._files = {}
+        self.generate()
+
+    @property
+    def files(self):
+        return self._files
+
+    def format_waypoints(self):
+        '''
+        This wants a simple array of waypoints
+        [
+            [lat, lon, alt(ft)]
+            ...
+        ]
+        '''
+
+        waypoints = []
+        sequence = []
+        alt = 0
+        if ('waypoint' not in self._mdc
+                or 'waypoints' not in self._mdc['waypoint']):
+            return (None, None)
+
+        i = 0
+        for wp in self._mdc['waypoint']['waypoints']:
+
+            wp_data = [0, 0, 0]
+
+            for idx, k in enumerate(['lat', 'lon']):
+                if k in wp and wp[k]:
+                    try:
+                        wp_data[idx] = float(wp[k])
+                    except:
+                        pass
+
+            # Update our current assigned altitude to follow through the next
+            # points instead of reverting to 0
+            try:
+                alt = int(wp['alt'])
+            except:
+                pass
+
+            if wp_data[0] and wp_data[1]:
+                wp_data[2] = alt
+                sequence.append(i)
+
+            waypoints.append(wp_data)
+            i += 1
+
+        return (waypoints, [sequence])
+
+    def get_bulls(self):
+
+        try:
+            bulls = self._mdc['waypoint']['bullseye']
+            if bulls['lat'] and bulls['lon']:
+                return [float(bulls['lat']), float(bulls['lon'])]
+        except KeyError:
+            return None
+
+        return None
+
+    def generate(self):
+
+        content = {
+            "id": self._mission_id,
+            "key": self._key,
+            "version": "1.0",
+            "data": {},
+        }
+
+        (waypoints, sequence) = self.format_waypoints()
+        if waypoints:
+            content['data']['waypoints'] = waypoints
+
+        if sequence:
+            content['data']['sequence'] = sequence
+
+        bulls = self.get_bulls()
+        if bulls:
+            content['data']['bullseye'] = bulls
+
+        if content['data']:
+            self._files['mdc-loader.json'] = json.dumps(
+                content, indent=2, separators=(',', ': '))
+
+
+class DCS_DTC():
+    '''
+    Used by dcs-dtc to auto-enter waypoints, comms etc.
+
+    https://github.com/the-paid-actor/dcs-dtc
+    '''
+
+    def __init__(self, mdc, key, mission_id):
+
+        self._mdc = mdc
+        self._files = {}
+        self._ac = mdc['flight']['flight-airframe']
+        self.generate()
+
+    @property
+    def files(self):
+        return self._files
+
+    def format_sequence(self):
+        '''
+        "Sequences":{
+            "Seq1":{
+                "_seq":[2,3,4]
+            },
+            "Seq2":{
+                "_seq":[1,2,3]
+            },
+            "Seq3":{
+                "_seq":[]
+            },
+            "EnableUpload":false,
+            "EnableUpload1":false,
+            "EnableUpload2":false,
+            "EnableUpload3":false
+        }
+        '''
+
+        # If we have properly formatted sequences use them
+        retval = {
+            "Seq1":{
+                "_seq": []
+            },
+            "Seq2":{
+                "_seq": []
+            },
+            "Seq3":{
+                "_seq": []
+            },
+            "EnableUpload": False,
+            "EnableUpload1": False,
+            "EnableUpload2": False,
+            "EnableUpload3": False
+        }
+
+        sequence = self._mdc.get('waypoint', {}).get('sequence', [])
+        for sequence in sequence:
+            seq_id = sequence['id']
+            seq = sequence.get('seq', '')
+            m = RE_VALID_SEQUENCE.match(seq)
+            if m:
+                # We add 1 here as DCS DTC is 1 indexed, MDC builder is 0 indexed
+                retval['Seq%s' % seq_id] = { 
+                        "_seq": [int(x) for x in seq.replace(' ', '').split(',')]
+                }
+                retval['EnableUpload%s' % seq_id] = True
+
+        return retval
+
+
+    def format_misc(self):
+        '''
+        Misc is a bit of a random collection of bingo, baro alt / radalt / TCN
+        etc. the only consistent one is bingo, which we shall set to MAX of
+        bingo, tiger, joker
+        '''
+
+        misc = {}
+
+        loadout = self._mdc.get('loadout', {})
+        if loadout:
+            bingo = 0
+            for x in ['bingo', 'tiger', 'joker']:
+                try:
+                    # Round value to 100 lbs
+                    value = int(math.ceil(loadout.get(x, 0)/100)*100)
+                    if value > bingo:
+                        bingo = value
+                except:
+                    pass
+
+            if bingo:
+                misc['Bingo'] = bingo
+                misc['BingoToBeUpdated'] = True
+
+        return misc
+
+
+    def format_waypoints(self):
+        '''
+        This wants it in
+        {
+          "Waypoints": {
+            "Waypoints": [
+              {
+                "Sequence": 1,
+                "Name": "Al Dhafra AFB",
+                "Latitude": "N 24.14.891",
+                "Longitude": "E 054.32.863",
+                "Elevation": 52,
+                "Blank": false
+              },
+              {
+                "Sequence": 9,
+                "Name": "WPT 9",
+                "Latitude": "N 00.00.000",
+                "Longitude": "E 000.00.000",
+                "Elevation": 0,
+                "Blank": true
+              }
+            ]
+          }
+        }
+        '''
+
+        waypoints = []
+        sequence = 1
+        alt = 0
+
+        if ('waypoint' not in self._mdc
+                or 'waypoints' not in self._mdc['waypoint']):
+            return waypoints
+
+        for wp in self._mdc['waypoint']['waypoints']:
+
+            new_wp = {
+                "Sequence": sequence,
+                "Name": "WPT %i" % sequence,
+                "Latitude": "N 00.00.000",
+                "Longitude": "E 000.00.000",
+                "Elevation": 0,
+                "Blank": True
+            }
+
+            # Update our current assigned altitude to follow through the next
+            # points instead of reverting to 0
+            if 'alt' in wp:
+                try:
+                    alt = int(wp['alt'])
+                except:
+                    pass
+
+            # If either lat or lon aren't set, skip the WP
+            try:
+                lat = self.fmt_ll(wp['lat'])
+                lon = self.fmt_ll(wp['lon'], False)
+            except KeyError:
+                lat = None
+                lon = None
+
+            if 'name' in wp and wp['name']:
+                new_wp['Name'] = wp['name']
+
+            # if we have lat / lon, include them and curretn assigned altitude
+            if lat and lon:
+                new_wp.update({
+                    'Blank': False,
+                    'Elevation': alt,
+                    'Latitude': lat,
+                    'Longitude': lon,
+                })
+            elif self._ac == 'FA-18C':
+                # If we're an 18, and it's blank, skip to avoid errors in DCS
+                # DTC and it decrementing back beyond what was entered
+                continue
+
+            waypoints.append(new_wp)
+            sequence += 1
+
+        return waypoints
+
+    def format_cms(self):
+        '''
+        "CMS": {
+            "Programs": [
+                {
+                    "Number": 1,
+                    "FlareBurstQty": 1,
+                    "FlareBurstInterval": 0.02,
+                    "FlareSalvoQty": 10,
+                    "FlareSalvoInterval": 1,
+                    "ChaffBurstQty": 1,
+                    "ChaffBurstInterval": 0.02,
+                    "ChaffSalvoQty": 10,
+                    "ChaffSalvoInterval": 1
+                },
+                ...
+            ]
+        }
+        '''
+
+        programs = []
+
+        if 'profiles' not in self._mdc or 'cmds' not in self._mdc['profiles']:
+            return programs
+
+        for x in range(1, 6):
+            prog = {
+                "Number": x,
+                "FlareBurstQty": 1,
+                "FlareBurstInterval": 0.02,
+                "FlareSalvoQty": 10,
+                "FlareSalvoInterval": 1,
+                "ChaffBurstQty": 1,
+                "ChaffBurstInterval": 0.02,
+                "ChaffSalvoQty": 10,
+                "ChaffSalvoInterval": 1
+            }
+
+            mapping = {
+                "BQ": "BurstQty",
+                "BI": "BurstInterval",
+                "SQ": "SalvoQty",
+                "SI": "SalvoInterval",
+            }
+
+            key = "MAN %i" % x
+            if key in self._mdc['profiles']['cmds']:
+                data = self._mdc['profiles']['cmds'][key]
+
+                updates = {}
+                for k, prefix in [('CHAFF', 'Chaff'), ('FLARE', 'Flare')]:
+                    for itm, value in data[k].items():
+                        try:
+                            out_key = mapping[itm]
+                        except:
+                            continue
+
+                        updates["%s%s" % (prefix, out_key)] = value
+
+                prog.update(updates)
+
+            programs.append(prog)
+
+        return programs
+
+    def format_hts(self):
+        '''
+        "HTS": {
+            "ManualTableEnabled": true,
+            "ManualEmitters": [122, 108, 110],
+            "EnabledClasses": [true, false, false, false, false, true, true, true, true, true, true]
+        }
+        '''
+
+        hts = {}
+
+        if 'profiles' not in self._mdc or 'hts' not in self._mdc['profiles']:
+            return hts
+
+        manTableEnabled = 'man' in self._mdc['profiles']['hts']
+        hts['ManualTableEnabled'] = manTableEnabled
+
+        if manTableEnabled:
+            hts['ManualEmitters'] = []
+            for entry in self._mdc['profiles']['hts']['man']:
+                hts['ManualEmitters'].append(entry['id'])
+
+        if 'classes' in self._mdc['profiles']['hts']:
+            classes = self._mdc['profiles']['hts']['classes']
+
+            hts['EnabledClasses'] = []
+
+            for x in range(1, 11):
+                hts['EnabledClasses'].append(x in classes)
+
+        return hts
+
+    def format_radio(self, name, type_id, radio_data):
+        data = {
+            'Name': name,
+            'Type': type_id,
+            'Channels': []
+        }
+
+        for preset, info in radio_data.items():
+            channel = {
+                'Type': type_id,
+                'Channel': int(preset),
+                'Frequency': float(info['value']),
+                'ToBeUpdated': False,
+            }
+
+            if 'override' in info:
+                channel['Frequency'] = float(info['override'])
+                channel['ToBeUpdated'] = True
+
+            data['Channels'].append(channel)
+
+        return data
+
+    def format_radios(self):
+        '''
+        "Radios": {
+            "COM1": {
+                "Name": "COM1",
+                'Type": 1,
+                "Channels": {
+                    {"Type":1,"Channel":1,"Frequency":251.0,"ToBeUpdated":false},
+                    ...
+                }
+            }
+            "COM2": {
+                "Name": "COM2",
+                'Type": 2,
+                "Channels": {
+                    {"Type":2,"Channel":2,"Frequency":251.0,"ToBeUpdated":false},
+                    ...
+                }
+            }
+        }
+        '''
+
+        radios = {}
+
+        if 'presets' not in self._mdc:
+            return radios
+
+        # Map of target and source presets based on DTC indexes to ensure
+        # consistent ordering / type IDs
+        maps = {
+            'F-16C': [
+                ['COM1', 'U'],
+                ['COM2', 'V'],
+            ],
+            'FA-18C': [
+                ['COM1', 'PRI'],
+                ['COM2', 'SEC'],
+            ]
+        }
+
+        mapping = maps.get(self._ac)
+        if not mapping:
+            return radios
+
+        presets = self._mdc.get('presets', {}).get('radios', {})
+
+        for index, data in enumerate(mapping):
+            dest_key, src_key = data
+            info = presets.get(src_key)
+            if info:
+                radios[dest_key] = self.format_radio(dest_key, index+1, info)
+
+        return radios
+
+    def generate(self):
+
+        content = {}
+
+        waypoints = self.format_waypoints()
+        if waypoints:
+            content['Waypoints'] = {
+                'Waypoints': waypoints,
+                'EnableUpload': True
+            }
+
+            # If we're an 18, default starting at 0
+            if self._ac == 'FA-18C':
+                content['Waypoints']['SteerpointStart'] = 0
+
+        cms = self.format_cms()
+        if cms:
+            content['CMS'] = {
+                'Programs': self.format_cms()
+            }
+
+        hts = self.format_hts()
+        if hts:
+            content['HTS'] = hts
+
+        radios = self.format_radios()
+        if radios:
+            content['Radios'] = radios
+
+        sequence = self.format_sequence()
+        if sequence:
+            content['Sequences'] = sequence
+
+        misc = self.format_misc()
+        if misc:
+            content['Misc'] = misc
+
+        if content:
+            self._files['dcs_dtc.json'] = json.dumps(
+                content, indent=2, separators=(',', ': '))
+
+    def fmt_ll(self, wp, lat=True):
+
+        try:
+            work = float(wp)
+        except ValueError:
+            return None
+
+        positive = work > 0
+        work = abs(work)
+
+        degs = math.floor(work)
+        work -= degs
+        work *= 60
+
+        mins = round(work, 3)
+        if mins == 60:
+            degs += 1
+            mins = 0
+
+        if lat:
+            lat_str = 'N ' if positive else 'S '
+        else:
+            lat_str = 'E ' if positive else 'W '
+
+        if lat:
+            lat_str += '%02d.' % degs
+        else:
+            lat_str += '%03d.' % degs
+
+        # 18 uses 2 DP, 16 uses 3
+        if self._ac == 'FA-18C':
+            lat_str += '%05.2f' % mins
+        else:
+            lat_str += '%06.3f' % mins
+
+        return lat_str
+
+
+async def get_html(url):
+
+    browser = await launch({
+        'headless': True,
+        'userDataDir': 'tmp/httpd/pyppeteer',
+    })
+
+    page = await browser.newPage()
+    page.on('console', lambda x: print("CONSOLE LOG:", x.text))
+    page.on('error', lambda x: print("ERROR:", x))
+    page.on('pageerror', lambda x: print("PAGE ERROR:", x))
+
+    print("LOAD: " + url)
+    await page.goto(url)
+    try:
+        await page.waitForSelector("#page_count", {"timeout": 2000})
+    except:
+        print ("Exception waiting for page_count")
+
+    content = await page.evaluate('() => document.documentElement.innerHTML')
+    await browser.close()
+    return content.encode('utf-8')
+
+async def get_image(url):
+
+    browser = await launch({
+        'headless': True,
+        'userDataDir': 'tmp/httpd/pyppeteer',
+    })
+
+    page = await browser.newPage()
+
+    await page.goto(url)
+    await page.waitForSelector("#page_count")
+
+    page_count = await page.evaluate('''
+    () => {
+        console.log(document.getElementById("page_count"));
+        return parseInt(document.getElementById("page_count").textContent);
+    }
+    ''')
+
+    await page.setViewport({
+        'width': PNG_WIDTH,
+        'height': PNG_HEIGHT*page_count})
+
+    screenshot = await page.screenshot({'type': 'png'})
+    await browser.close()
+
+    return (page_count, screenshot)
+
+
+async def get_pdf(url):
+    browser = await launch({
+        'headless': True,
+        'userDataDir': 'tmp/httpd/pyppeteer',
+    })
+
+    page = await browser.newPage()
+
+    await page.goto(url)
+    await page.waitForSelector("#page_count")
+
+    page_count = await page.evaluate('''
+    () => {
+        return parseInt(document.getElementById("page_count").textContent);
+    }
+    ''')
+
+    await page.setViewport({
+        'width': PNG_WIDTH,
+        'height': PNG_HEIGHT*page_count
+    })
+
+    pdf = await page.pdf({
+        'width': '%spx' % PNG_WIDTH,
+        'height': '%spx' % PNG_HEIGHT,
+        'margin': {
+            'top': 0,
+            'bottom': 0,
+            'left': 0,
+            'right': 0
+        },
+        'printBackground': True,
+    })
+
+    await browser.close()
+
+    return pdf
+
+
+def main():
+
+    qs = urllib.parse.parse_qs(os.environ.get('QUERY_STRING', ""))
+
+    params = {}
+    for key, re in RE_ARGS.items():
+        if key not in qs or not re.match(qs[key][0]):
+            print("Content-Type: text/html")
+            print("Status: 400 Bad Request\n")
+            sys.exit(0)
+        else:
+            params[key] = qs[key][0]
+
+    # Validate mdc exists
+    mdc_file = os.path.join(ROOT, 'mdcs', '%s.json' % params['key'])
+    if not os.path.isfile(mdc_file):
+        print("Content-Type: text/html")
+        print("Status: 400 Bad Request\n")
+        sys.exit(0)
+
+    mdc_modified = os.path.getmtime(mdc_file)
+
+    with open(mdc_file) as fh:
+        mdc = json.load(fh)
+
+    # If we are A10, we provide the CDU file also
+    ac = mdc['flight']['flight-airframe']
+    cdu = None
+
+    if ac == 'A-10C':
+        cdu = CDU_DataLoader(mdc, params['key'], params['id'])
+    elif ac == 'F-16C':
+        cdu = DCS_DTC(mdc, params['key'], params['id'])
+    elif ac == 'FA-18C':
+        cdu = CDU_BASE()
+
+        mdc_loader = MDC_LOADER(mdc, params['key'], params['id'])
+        if mdc_loader.files:
+            cdu.files.update(mdc_loader.files)
+
+        dtc = DCS_DTC(mdc, params['key'], params['id'])
+        if dtc.files:
+            cdu.files.update(dtc.files)
+
+    url = (
+        '{scheme}://{host}/{root}'
+        '/templates/{template}/template.htm?kb={key}').format(
+        scheme=os.environ.get('REQUEST_SCHEME'),
+        host=os.environ.get('HTTP_HOST'),
+        root=os.path.dirname(os.environ.get('SCRIPT_NAME')),
+        template=params['template'],
+        key=params['key'])
+
+    if params['output'] == "html":
+        print("Content-Type: text/plain\n")
+        if cdu and cdu.files:
+            for cdu_file, cdu_data in cdu.files.items():
+                print("-"*60)
+                print(cdu_file)
+                print("-"*60)
+                print(cdu_data)
+                sys.stdout.flush()
+        content = asyncio.get_event_loop().run_until_complete(get_html(url))
+        print("-"*60)
+        print("-"*60)
+        sys.stdout.flush()
+        sys.stdout.buffer.write(content)
+        return
+
+    if params['output'] == "pdf":
+
+        # Check if we have a cache
+        cache_file = os.path.join(ROOT, 'cache', params['key'])
+        if cdu and cdu.files:
+            cache_file += '.zip'
+            if (os.path.exists(cache_file)
+                    and mdc_modified < os.path.getmtime(cache_file)):
+                print ("Content-Disposition: attachment; "
+                       "filename=\"MDC-%s.zip\"" % params['id'])
+                print ("Content-Type: application/zip\n")
+                sys.stdout.flush()
+                with open(cache_file, 'rb') as fh:
+                    sys.stdout.buffer.write(fh.read())
+                return
+        else:
+            cache_file += '.pdf'
+            if (os.path.exists(cache_file)
+                    and mdc_modified < os.path.getmtime(cache_file)):
+                print ("Content-Disposition: attachment; "
+                       "filename=\"MDC-%s.pdf\"" % params['id'])
+                print("Content-Type: application/pdf\n")
+                sys.stdout.flush()
+                with open(cache_file, 'rb') as fh:
+                    sys.stdout.buffer.write(fh.read())
+                return
+
+        pdf = asyncio.get_event_loop().run_until_complete(get_pdf(url))
+
+        if cdu and cdu.files:
+            # Then we zip it up instead
+            zipf = ZipFile(cache_file, 'w')
+            zipf.writestr('%s.pdf' % params['id'], pdf)
+
+            for cdu_file, cdu_data in cdu.files.items():
+                zipf.writestr('0000-%s.%s' % (params['id'], cdu_file), cdu_data)
+
+            zipf.close()
+
+            print ("Content-Disposition: attachment; "
+                   "filename=\"MDC-%s.zip\"" % params['id'])
+            print ("Content-Type: application/zip\n")
+            sys.stdout.flush()
+            with open(cache_file, 'rb') as fh:
+                sys.stdout.buffer.write(fh.read())
+            return
+
+        print ("Content-Disposition: attachment; "
+               "filename=\"MDC-%s.pdf\"" % params['id'])
+        print("Content-Type: application/pdf\n")
+        sys.stdout.flush()
+        with open(cache_file, 'wb') as fh:
+            fh.write(pdf)
+        sys.stdout.buffer.write(pdf)
+        return
+
+    if params['output'].startswith("png"):
+
+        cache_base = os.path.join(ROOT, 'cache', params['key'])
+
+        # See if a png exists, as we don't know how many pages tehre are
+        if not cdu or not cdu.files:
+            cache_file = cache_base + '.png'
+            if (os.path.exists(cache_file)
+                    and mdc_modified < os.path.getmtime(cache_file)):
+                print ("Content-Disposition: attachment; "
+                       "filename=\"0000-%s-0001.png\"" % params['id'])
+                print("Content-Type: image/png\n")
+                sys.stdout.flush()
+                with open(cache_file, 'rb') as fh:
+                    sys.stdout.buffer.write(fh.read())
+                return
+
+        # Otherwise see if a zip exists
+        else:
+            cache_file = cache_base + '.zip'
+            if (os.path.exists(cache_file)
+                    and mdc_modified < os.path.getmtime(cache_file)):
+                print ("Content-Disposition: attachment; "
+                       "filename=\"MDC-%s.zip\"" % params['id'])
+                print ("Content-Type: application/zip\n")
+                sys.stdout.flush()
+                with open(cache_file, 'rb') as fh:
+                    sys.stdout.buffer.write(fh.read())
+                return
+
+        pages, png = asyncio.get_event_loop().run_until_complete(
+            get_image(url))
+
+        if pages == 1 and (not cdu or not cdu.files):
+            cache_file = cache_base + '.png'
+            print ("Content-Disposition: attachment; "
+                   "filename=\"0000-%s-0001.png\"" % params['id'])
+            print("Content-Type: image/png\n")
+            sys.stdout.flush()
+
+            with open(cache_file, 'wb') as fh:
+                fh.write(png)
+
+            sys.stdout.buffer.write(png)
+            return
+
+        # Zip up each page
+        cache_file = cache_base + '.zip'
+        zipf = ZipFile(cache_file, 'w')
+
+        if cdu and cdu.files:
+            for cdu_file, cdu_data in cdu.files.items():
+                zipf.writestr('0000-%s.%s' % (params['id'], cdu_file), cdu_data)
+
+        # Crop out pages
+        if pages == 1:
+            zipf.writestr('0000-%s-001.png' % params['id'], png)
+        else:
+            # Load complete image into PIL for Cropping
+            im1 = Image.open(io.BytesIO(png))
+
+            for x in range(pages):
+                cr = im1.crop((0, PNG_HEIGHT*x, PNG_WIDTH, PNG_HEIGHT*(x+1)))
+                f = io.BytesIO()
+                cr.save(f, "PNG")
+                f.seek(0)
+                zipf.writestr(
+                    '0000-%s-%03d.png' % (params['id'], x+1), f.read())
+
+        zipf.close()
+
+        print ("Content-Disposition: attachment; "
+               "filename=\"MDC-%s.zip\"" % params['id'])
+        print ("Content-Type: application/zip\n")
+        sys.stdout.flush()
+        with open(cache_file, 'rb') as fh:
+            sys.stdout.buffer.write(fh.read())
+        return
+
+    print("Content-Type: text/plain\n")
+    print("UNKNOWN")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,338 @@
+{
+    "version": "2.0",
+    "data": {
+        "squadron": "1",
+        "mission": "1",
+        "side": "blue"
+    },
+    "mission": {
+        "mission-id": "",
+        "mission-desc": "",
+        "mission-callsign": "",
+        "mission-flight-number": "1",
+        "mission-pri-freq": null,
+        "mission-sec-freq": null,
+        "mission-ter-freq": null
+    },
+    "presets": {
+        "priority": [
+            "U",
+            "V"
+        ],
+        "radios": {
+            "U": {
+                "1": {
+                    "value": "305.000"
+                },
+                "2": {
+                    "value": "264.000"
+                },
+                "3": {
+                    "value": "265.000"
+                },
+                "4": {
+                    "value": "256.000"
+                },
+                "5": {
+                    "value": "254.000"
+                },
+                "6": {
+                    "value": "250.000"
+                },
+                "7": {
+                    "value": "270.000"
+                },
+                "8": {
+                    "value": "257.000"
+                },
+                "9": {
+                    "value": "255.000"
+                },
+                "10": {
+                    "value": "262.000"
+                },
+                "11": {
+                    "value": "259.000"
+                },
+                "12": {
+                    "value": "268.000"
+                },
+                "13": {
+                    "value": "269.000"
+                },
+                "14": {
+                    "value": "260.000"
+                },
+                "15": {
+                    "value": "263.000"
+                },
+                "16": {
+                    "value": "261.000"
+                },
+                "17": {
+                    "value": "267.000"
+                },
+                "18": {
+                    "value": "251.000"
+                },
+                "19": {
+                    "value": "253.000"
+                },
+                "20": {
+                    "value": "266.000"
+                }
+            },
+            "V": {
+                "1": {
+                    "value": "127.000"
+                },
+                "2": {
+                    "value": "135.000"
+                },
+                "3": {
+                    "value": "136.000"
+                },
+                "4": {
+                    "value": "127.000"
+                },
+                "5": {
+                    "value": "125.000"
+                },
+                "6": {
+                    "value": "121.000"
+                },
+                "7": {
+                    "value": "141.000"
+                },
+                "8": {
+                    "value": "128.000"
+                },
+                "9": {
+                    "value": "126.000"
+                },
+                "10": {
+                    "value": "133.000"
+                },
+                "11": {
+                    "value": "130.000"
+                },
+                "12": {
+                    "value": "139.000"
+                },
+                "13": {
+                    "value": "140.000"
+                },
+                "14": {
+                    "value": "131.000"
+                },
+                "15": {
+                    "value": "134.000"
+                },
+                "16": {
+                    "value": "132.000"
+                },
+                "17": {
+                    "value": "138.000"
+                },
+                "18": {
+                    "value": "122.000"
+                },
+                "19": {
+                    "value": "124.000"
+                },
+                "20": {
+                    "value": "137.000"
+                }
+            }
+        }
+    },
+    "flight": {
+        "flight-airframe": "F-16C",
+        "flight-coord": "ddm",
+        "flight-coord-decimals": "3",
+        "members": [
+            {
+                "id": "1",
+                "pilot": "",
+                "hm device": "JHMCS",
+                "tcn": "",
+                "lsr": "",
+                "lss": "",
+                "squawk": ""
+            }
+        ]
+    },
+    "package": {
+        "package-member": "package-false",
+        "package-name": "",
+        "members": []
+    },
+    "loadout": {
+        "flare": "60",
+        "chaff": "60",
+        "gun": "100",
+        "gun_lbs": "294",
+        "fuel": "100",
+        "fuel_lbs": "7163",
+        "tiger": "0",
+        "joker": "3000",
+        "bingo": "2000",
+        "pylons": [
+            {
+                "pyl": "1",
+                "store": "",
+                "weight": 0,
+                "clsid": null
+            },
+            {
+                "pyl": "2",
+                "store": "",
+                "weight": 0,
+                "clsid": null
+            },
+            {
+                "pyl": "3",
+                "store": "",
+                "weight": 0,
+                "clsid": null
+            },
+            {
+                "pyl": "4",
+                "store": "",
+                "weight": 0,
+                "clsid": null
+            },
+            {
+                "pyl": "5L",
+                "store": "",
+                "weight": 0,
+                "clsid": null
+            },
+            {
+                "pyl": "5",
+                "store": "",
+                "weight": 0,
+                "clsid": null
+            },
+            {
+                "pyl": "5R",
+                "store": "",
+                "weight": 0,
+                "clsid": null
+            },
+            {
+                "pyl": "6",
+                "store": "",
+                "weight": 0,
+                "clsid": null
+            },
+            {
+                "pyl": "7",
+                "store": "",
+                "weight": 0,
+                "clsid": null
+            },
+            {
+                "pyl": "8",
+                "store": "",
+                "weight": 0,
+                "clsid": null
+            },
+            {
+                "pyl": "9",
+                "store": "",
+                "weight": 0,
+                "clsid": null
+            }
+        ],
+        "weights": {
+            "total": 28923,
+            "stores": 0,
+            "oew": 21466,
+            "mtow_field": 42300,
+            "mlw_field": 42300
+        }
+    },
+    "profiles": {
+        "notes": {
+            "html": "",
+            "title": "LOADOUT INFORMATION"
+        }
+    },
+    "deparr": {
+        "dep": {
+            "location": "",
+            "icao": "----",
+            "alt": "",
+            "tcn": "",
+            "par": null,
+            "atis": null,
+            "gnd": null,
+            "twr": null,
+            "ctrl": null,
+            "uhf": null,
+            "vhf": null
+        },
+        "alt": {
+            "usedep": true,
+            "location": "",
+            "icao": "----",
+            "alt": "",
+            "tcn": "",
+            "par": null,
+            "atis": null,
+            "gnd": null,
+            "twr": null,
+            "ctrl": null,
+            "uhf": null,
+            "vhf": null
+        },
+        "arr": {
+            "usedep": true,
+            "location": "",
+            "icao": "----",
+            "alt": "",
+            "tcn": "",
+            "par": null,
+            "atis": null,
+            "gnd": null,
+            "twr": null,
+            "ctrl": null,
+            "uhf": null,
+            "vhf": null
+        }
+    },
+    "waypoint": {
+        "walk-time": "18:00",
+        "to-time": "18:20",
+        "endurance": "",
+        "ete": "",
+        "transition-alt": "13000",
+        "transition-level": "150",
+        "gs-units": "kts",
+        "bullseye": {
+            "name": "BULLS",
+            "lat": "42.186548742601",
+            "lon": "41.678934289736"
+        },
+        "waypoints": [],
+        "poi": []
+    },
+    "comms": {
+        "codewords": [],
+        "agencies": [],
+        "ramrod": "COMPLEXITY"
+    },
+    "threats": {
+        "threats": [],
+        "targets": [],
+        "priorities": []
+    },
+    "notes": {
+        "html": ""
+    },
+    "download": {
+        "template": "Apache"
+    },
+    "key": "suLzdPIK"
+}

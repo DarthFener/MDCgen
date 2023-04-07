@@ -1,0 +1,205 @@
+<div class="tab-pane active" id="data">
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+  <h1 class="h2">Data Sources</h1>
+</div>
+
+<form id="data-form" data-nav-target="#flight" class="needs-validation" novalidate>
+  <label style="font-weight: 600; margin-top: 5px; color: #555555;">Data Imports</label>
+
+  <div class="form-group">
+    <div class="custom-file">
+      <div id='data-file-input-container'>
+        <input type="file" class="custom-file-input" id="data-file-input" accept=".cf,.kmz,.kml,.miz,.json" onChange="data_load_file(this);">
+      </div>
+      <label class="custom-file-label" for="validatedCustomFile">Combat Flite / Google Earth / MIZ / Saved JSON</label>
+    </div>
+    <small class="form-text text-muted">
+      These are not uploaded or stored and are processed by your browser
+    </small>
+  </div>
+
+  <div class="form-group">
+    <label for="data-squadron">Squadron</label>
+    <select name="squadron" id="data-squadron" class="form-control">
+    </select>
+    <small class="form-text text-muted">
+      This is used to populate the mission selector below
+    </small>
+  </div>
+
+  <div class="form-group">
+    <label for="data-mission">Mission</label>
+    <select name="mission" id="data-mission" class="form-control">
+    </select>
+    <small class="form-text text-muted">
+      This is used to resolve aircraft presets, frequency auto-completes, agency auto-completes
+    </small>
+  </div>
+
+  <div class="form-group">
+    <label for="data-side">Side</label>
+    <select name="side" id="data-side" class="form-control">
+      <option>blue</option>
+      <option>red</option>
+    </select>
+    <small class="form-text text-muted">
+      This is used to restrict navpoint selection and identify manual navpoints vs built-in mission navpoints
+    </small>
+  </div>
+
+  <br>
+
+  <div style="text-align: right">
+    <button class="btn btn-primary" type="submit">Next...</button>
+  </div>
+</form>
+
+<!-- ROUTE DIALOG (CF) -->
+<div class="modal fade" id="data-route-dialog" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document" style="max-width:650px">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Route Select</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body pb-0" id='data-route-dialog-ge'>
+        <p>
+        Google Earth import only supports the importing of waypoint
+        information
+        <br><br>
+
+        You should therefore additional attention to:
+
+        <ul>
+          <li>Mission ID</li>
+          <li>Walk Time</li>
+          <li>Bullseye</li>
+          <li>Waypoint Altitudes and Speeds</li>
+        </ul>
+
+        If you see far too many items in the route, select the route(s) in GE
+        and right click "Save Place As"
+        </p>
+      </div>
+      <div class="modal-body pb-0" id='data-route-dialog-cf'>
+        <p>
+          Selecting a mission route will load the following data:
+        </p>
+
+        <ul>
+          <li>Flight: Airframe</li>
+          <li>Mission: ID</li>
+          <li>Loadout</li>
+          <li>Waypoints: Walk Time, Bullseye, Route, POI</li>
+        </ul>
+
+        <p>
+          Checking the route only checkbox will limit the update to only:
+        </p>
+
+        <ul>
+          <li>Waypoints: Route (and POI if selected)</li>
+        </ul>
+      </div>
+
+      <div class="modal-body pt-0">
+
+        <form>
+          <div class="form-group mb-0">
+            <label for="data-route-dialog-waypoints">Mission Route</label>
+            <select id="data-route-dialog-waypoints" class="form-control">
+              <option value="" selected>None</option>
+            </select>
+
+          </div>
+
+          <div class="form-group mb-0">
+            <div class="form-check">
+                <input class="form-check-input" id="data-route-dialog-append-route" type="checkbox">
+                <label class="form-check-label" for="data-route-dialog-append-route">Append route (not replace)</label>
+            </div>
+          </div>
+
+          <div id='data-route-dialog-miz-or-cf-only'>
+            <div class="form-group">
+              <div class="form-check">
+                  <input class="form-check-input" id="data-route-dialog-route-only" type="checkbox">
+                  <label class="form-check-label" for="data-route-dialog-route-only">Load route only (This will not set the airframe and loadout</label>
+              </div>
+            </div>
+          </div>
+
+          <div id='data-route-dialog-cf-only'>
+            <div class="form-group">
+              <label for="data-route-dialog-waypoints-style">Waypoint ID Style</label>
+              <table class="table table-striped">
+                <colgroup>
+                  <col style="width:38px">
+                  <col style="width:38px">
+                  <col style="width:140px">
+                  <col>
+                </colgroup>
+
+                <thead class="thead-light">
+                  <tr>
+                    <th></th>
+                    <th class="text-center">#</th>
+                    <th>EXAMPLE</th>
+                    <th>DESCRIPTION</th>
+                  </tr>
+                </thead>
+                <tbody class="ui-sortable" style="">
+                  <tr onClick="$(this).find('td input:radio').prop('checked', true);">
+                    <td style="text-align:center; vertical-align: middle">
+                      <input style="margin-top: 5px;" type="radio" name="data-route-dialog-wp-style" value="index" checked>
+                    </td>
+                    <td class="text-center">1</td>
+                    <td>My Waypoint</td>
+                    <td>Incrementing numeric indicies</td>
+                  </tr>
+                  <tr onClick="$(this).find('td input:radio').prop('checked', true);">
+                    <td style="text-align:center; vertical-align: middle">
+                      <input style="margin-top: 5px;" type="radio" name="data-route-dialog-wp-style" value="type">
+                    </td>
+                    <td class="text-center">ST</td>
+                    <td>My Waypoint</td>
+                    <td>Waypoint types</td>
+                  </tr>
+                  <tr onClick="$(this).find('td input:radio').prop('checked', true);">
+                    <td style="text-align:center; vertical-align: middle">
+                      <input style="margin-top: 5px;" type="radio" name="data-route-dialog-wp-style" value="index-type">
+                    </td>
+                    <td class="text-center">3</td>
+                    <td>ST: My Waypoint</td>
+                    <td>Numeric indicies with waypoint name prefixed by type</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="form-group" id="data-route-dialog-poi-container">
+            <label for="data-route-dialog-poi">Points of Interest</label>
+            <select id="data-route-dialog-poi" class="form-control">
+              <option value="" selected>None</option>
+            </select>
+            <small class="form-text text-muted">
+              Additional waypoints of interest
+            </small>
+          </div>
+
+          <!-- Allow form submission with keyboard without duplicating the dialog button -->
+          <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+          </fieldset>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id='data-route-dialog-submit'>Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>

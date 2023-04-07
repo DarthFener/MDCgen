@@ -1,0 +1,314 @@
+<div class="tab-pane active" id="deparr">
+<form id="deparr-form" data-nav-target="#waypoints" class="needs-validation" novalidate>
+
+
+  <!-- DEPARTURE -->
+
+  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2">Departure</h1>
+  </div>
+
+  <div class="form-row">
+    <div class="col">
+      <label class="heading">Location</label>
+      <label class="heading" style="width:60px; float:right">ICAO</label>
+      <div class="input-group mb-2 ">
+        <input type="text" class="form-control deparr-location" name="dep-location" id="deparr-dep-location" placeholder="Location">
+        <div class="input-group-append">
+          <input id="deparr-dep-icao" name="dep-icao" class="input-group-text p-0 align-middle" style="width:65px; display: grid" value="----" disabled>
+        </div>
+      </div>
+    </div>
+    <div class="col col-2">
+      <label class="heading">Altitude</label>
+      <div class="input-group mb-2">
+        <input type="number" class="form-control deparr-location nospin" name="dep-alt" id="deparr-dep-alt">
+        <div class="input-group-append">
+          <div class="input-group-text p-0 align-middle" style="width:35px; display: grid">ft</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="col fixed-wing-only">
+      <div class="form-group">
+        <label class="heading">TCN</label>
+        <input type="text" class="form-control tcn-validator" name="dep-tcn" id="deparr-dep-tcn">
+      </div>
+    </div>
+    <div class="col"> 
+      <div class="form-group">
+        <label class="heading">PAR</label>
+        <input type="text" class="form-control freq-autocomplete freq-autocomplete-optional freq-pst" name="dep-par" data-suffix='PAR' data-title='deparr-dep-location' id="deparr-dep-par">
+      </div>
+    </div>
+    <div class="col"> 
+      <div class="form-group">
+        <label class="heading">ATIS</label>
+        <input type="text" class="form-control freq-autocomplete freq-autocomplete-optional freq-pst" name="dep-atis" data-suffix="ATIS" data-title='deparr-dep-location' id="deparr-dep-atis">
+      </div>
+    </div>
+    <div class="col"> 
+      <div class="form-group">
+        <label class="heading">GND</label>
+        <input type="text" class="form-control freq-autocomplete freq-autocomplete-optional freq-pst" name="dep-gnd" data-suffix='GND' data-title='deparr-dep-location' id="deparr-dep-gnd">
+      </div>
+    </div>
+    <div class="col"> 
+      <div class="form-group">
+        <label class="heading">TWR/LSO</label>
+        <input type="text" class="form-control freq-autocomplete freq-autocomplete-optional freq-pst" name="dep-twr" data-suffix='TWR/LSO' data-title='deparr-dep-location' id="deparr-dep-twr">
+      </div>
+    </div>
+    <div class="col"> 
+      <div class="form-group">
+        <label class="heading">TMA/CCA</label>
+        <input type="text" class="form-control freq-autocomplete freq-autocomplete-optional freq-pst" name="dep-ctrl" data-suffix='TMA/CCA' data-title='deparr-dep-location' id="deparr-dep-ctrl">
+      </div>
+    </div>
+    <div class="col"> 
+      <div class="form-group">
+        <label class="heading">AI UHF</label>
+        <input type="text" class="form-control freq-autocomplete freq-autocomplete-optional freq-pst" name="dep-uhf" data-title="deparr-dep-location" data-suffix="AI UHF" id="deparr-dep-uhf">
+      </div>
+    </div>
+    <div class="col"> 
+      <div class="form-group">
+        <label class="heading">AI VHF</label>
+        <input type="text" class="form-control freq-autocomplete freq-autocomplete-optional freq-pst" name="dep-vhf" data-title="deparr-dep-location" data-suffix="AI VHF" id="deparr-dep-vhf">
+      </div>
+    </div>
+  </div>
+
+  <!--
+  <div class="form-row">
+    <div class="col"> 
+      <div class="form-group">
+        <label class="heading">FORMATION</label>
+        <input type="text" class="form-control" id="freq">
+      </div>
+    </div>
+    <div class="col"> 
+      <div class="form-group">
+        <label class="heading">INTERVAL</label>
+        <input type="text" class="form-control" id="freq">
+      </div>
+    </div>
+    <div class="col"> 
+      <div class="form-group">
+        <label class="heading">PWR</label>
+        <div class="input-group mb-2 ">
+          <input type="number" class="form-control" id="inlineFormInputGroup" value="100" >
+          <div class="input-group-append">
+            <div class="input-group-text">%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col"> 
+      <div class="form-group">
+        <label class="heading">FLAPS</label>
+        <select id="deparr-flaps" class="form-control">
+          <option>None</option>
+          <option>Half</option>
+          <option>Full</option>
+        </select>
+      </div>
+    </div>
+    <div class="col"> 
+      <div class="form-group">
+        <label class="heading">ROTATE</label>
+        <div class="input-group mb-2 ">
+          <input type="number" class="form-control" id="inlineFormInputGroup">
+          <div class="input-group-append">
+            <div class="input-group-text">kts</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  -->
+
+  <!-- Arrival -->
+
+  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2">Arrival</h1>
+    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+      <label class="btn btn-secondary active" onclick="$('#deparr-arr-full').hide(); $('#deparr-arr-min').show(); presets_update_inuse();">
+        <input type="radio" id="deparr-arr-usedep-true" name="arr-usedep" value="true" autocomplete="off" checked> Use Departure
+      </label>
+      <label class="btn btn-secondary" onclick="$('#deparr-arr-full').show(); $('#deparr-arr-min').hide(); presets_update_inuse();">
+        <input type="radio" id="deparr-arr-usedep-false" name="arr-usedep" value="false" autocomplete="off"> Custom
+      </label>
+    </div>
+  </div>
+
+  <div id="deparr-arr-full" style="display: none">
+    <div class="form-row">
+      <div class="col">
+        <label class="heading">Location</label>
+        <label class="heading" style="width:60px; float:right">ICAO</label>
+        <div class="input-group mb-2 ">
+          <input type="text" class="form-control deparr-location" name="arr-location" id="deparr-arr-location" placeholder="Location">
+          <div class="input-group-append">
+            <input name="arr-icao" id="deparr-arr-icao" class="input-group-text p-0 align-middle" style="width:65px; display: grid" disabled value="----">
+          </div>
+        </div>
+      </div>
+      <div class="col col-2">
+        <label class="heading">Altitude</label>
+        <div class="input-group mb-2">
+          <input type="number" class="form-control deparr-location nospin" name="arr-alt" id="deparr-arr-alt">
+          <div class="input-group-append">
+            <div class="input-group-text p-0 align-middle" style="width:35px; display: grid">ft</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="col fixed-wing-only">
+        <div class="form-group">
+          <label class="heading">TCN</label>
+          <input type="text" class="form-control tcn-validator" name="arr-tcn" id="deparr-arr-tcn">
+        </div>
+      </div>
+      <div class="col"> 
+        <div class="form-group">
+          <label class="heading">PAR</label>
+          <input type="text" class="form-control freq-autocomplete freq-autocomplete-optional freq-pst" name="arr-par" data-exclude-if-hidden='deparr-arr-full' data-title="deparr-arr-location" data-suffix="PAR" id="deparr-arr-par">
+        </div>
+      </div>
+      <div class="col"> 
+        <div class="form-group">
+          <label class="heading">ATIS</label>
+          <input type="text" class="form-control freq-autocomplete freq-autocomplete-optional freq-pst" name="arr-atis" data-exclude-if-hidden='deparr-arr-full' data-title="deparr-arr-location" data-suffix="ATIS" id="deparr-arr-atis">
+        </div>
+      </div>
+      <div class="col"> 
+        <div class="form-group">
+          <label class="heading">GND</label>
+          <input type="text" class="form-control freq-autocomplete freq-autocomplete-optional freq-pst" name="arr-gnd" data-exclude-if-hidden='deparr-arr-full' data-title="deparr-arr-location" data-suffix="GND" id="deparr-arr-gnd">
+        </div>
+      </div>
+      <div class="col"> 
+        <div class="form-group">
+          <label class="heading">TWR/LSO</label>
+          <input type="text" class="form-control freq-autocomplete freq-autocomplete-optional freq-pst" name="arr-twr" data-exclude-if-hidden='deparr-arr-full' data-title="deparr-arr-location" data-suffix="TWR" id="deparr-arr-twr">
+        </div>
+      </div>
+      <div class="col"> 
+        <div class="form-group">
+          <label class="heading">TMA/CCA</label>
+          <input type="text" class="form-control freq-autocomplete freq-autocomplete-optional freq-pst" name="arr-ctrl" data-exclude-if-hidden='deparr-arr-full' data-title="deparr-arr-location" data-suffix="TMA/CCA" id="deparr-arr-ctrl">
+        </div>
+      </div>
+      <div class="col"> 
+        <div class="form-group">
+          <label class="heading">AI UHF</label>
+          <input type="text" class="form-control freq-autocomplete freq-autocomplete-optional freq-pst" name="arr-uhf" data-exclude-if-hidden='deparr-arr-full' data-title="deparr-arr-location" data-suffix="AI UHF" id="deparr-arr-uhf">
+        </div>
+      </div>
+      <div class="col"> 
+        <div class="form-group">
+          <label class="heading">AI VHF</label>
+          <input type="text" class="form-control freq-autocomplete freq-autocomplete-optional freq-pst" name="arr-vhf" data-exclude-if-hidden='deparr-arr-full' data-title="deparr-arr-location" data-suffix="AI VHF" id="deparr-arr-vhf">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALTN -->
+
+  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2">Alternate</h1>
+    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+      <label class="btn btn-secondary active" onclick="$('#deparr-alt-full').hide(); $('#deparr-alt-min').show(); presets_update_inuse();">
+        <input type="radio" id="deparr-alt-usedep-true" name="alt-usedep" value="true" autocomplete="off" checked> Use Departure
+      </label>
+      <label class="btn btn-secondary" onclick="$('#deparr-alt-full').show(); $('#deparr-alt-min').hide(); presets_update_inuse();">
+        <input type="radio" id="deparr-alt-usedep-false" name="alt-usedep" value="false" autocomplete="off"> Custom
+      </label>
+    </div>
+  </div>
+
+  <div id="deparr-alt-full" style="display:none">
+    <div class="form-row">
+      <div class="col">
+        <label class="heading">Location</label>
+        <label class="heading" style="width:60px; float:right">ICAO</label>
+        <div class="input-group mb-2 ">
+          <input type="text" class="form-control deparr-location" name="alt-location" id="deparr-alt-location" placeholder="Location">
+          <div class="input-group-append">
+            <input name="alt-icao" id="deparr-alt-icao" class="input-group-text p-0 align-middle" style="width:65px; display: grid" disabled value="----">
+          </div>
+        </div>
+      </div>
+      <div class="col col-2">
+        <label class="heading">Altitude</label>
+        <div class="input-group mb-2">
+          <input type="number" class="form-control deparr-location nospin" name="alt-alt" id="deparr-alt-alt">
+          <div class="input-group-append">
+            <div class="input-group-text p-0 align-middle" style="width:35px; display: grid">ft</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="col fixed-wing-only">
+        <div class="form-group">
+          <label class="heading">TCN</label>
+          <input type="text" class="form-control tcn-validator" name="alt-tcn" id="deparr-alt-tcn">
+        </div>
+      </div>
+      <div class="col"> 
+        <div class="form-group">
+          <label class="heading">PAR</label>
+          <input type="text" class="form-control freq-autocomplete freq-autocomplete-optional freq-pst" name="alt-par" data-exclude-if-hidden='deparr-alt-full' data-title="deparr-alt-location" data-suffix="PAR" id="deparr-alt-par">
+        </div>
+      </div>
+      <div class="col"> 
+        <div class="form-group">
+          <label class="heading">ATIS</label>
+          <input type="text" class="form-control freq-autocomplete freq-autocomplete-optional freq-pst" name="alt-atis" data-exclude-if-hidden='deparr-alt-full' data-title="deparr-alt-location" data-suffix="ATIS" id="deparr-alt-atis">
+        </div>
+      </div>
+      <div class="col"> 
+        <div class="form-group">
+          <label class="heading">GND</label>
+          <input type="text" class="form-control freq-autocomplete freq-autocomplete-optional freq-pst" name="alt-gnd" data-exclude-if-hidden='deparr-alt-full' data-title="deparr-alt-location" data-suffix="GND" id="deparr-alt-gnd">
+        </div>
+      </div>
+      <div class="col"> 
+        <div class="form-group">
+          <label class="heading">TWR/LSO</label>
+          <input type="text" class="form-control freq-autocomplete freq-autocomplete-optional freq-pst" name="alt-twr" data-exclude-if-hidden='deparr-alt-full' data-title="deparr-alt-location" data-suffix="TWR" id="deparr-alt-twr">
+        </div>
+      </div>
+      <div class="col"> 
+        <div class="form-group">
+          <label class="heading">TMA/CCA</label>
+          <input type="text" class="form-control freq-autocomplete freq-autocomplete-optional freq-pst" name="alt-ctrl" data-exclude-if-hidden='deparr-alt-full' data-title="deparr-alt-location" data-suffix="TMA/CCA" id="deparr-alt-ctrl">
+        </div>
+      </div>
+      <div class="col"> 
+        <div class="form-group">
+          <label class="heading">AI UHF</label>
+          <input type="text" class="form-control freq-autocomplete freq-autocomplete-optional freq-pst" name="alt-uhf" data-exclude-if-hidden='deparr-alt-full' data-title="deparr-alt-location" data-suffix="AI UHF" id="deparr-alt-uhf">
+        </div>
+      </div>
+      <div class="col"> 
+        <div class="form-group">
+          <label class="heading">AI VHF</label>
+          <input type="text" class="form-control freq-autocomplete freq-autocomplete-optional freq-pst" name="alt-vhf" data-exclude-if-hidden='deparr-alt-full' data-title="deparr-alt-location" data-suffix="AI VHF" id="deparr-alt-vhf">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="text-align: right">
+    <button class="btn btn-primary" type="submit">Next...</button>
+  </div>
+</form>
+</div>

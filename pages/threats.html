@@ -1,0 +1,122 @@
+<div class="tab-pane active" id="threats">
+<!-- https://wiki.hoggitworld.com/view/Threat_Database -->
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+  <h1 class="h2">Threats</h1>
+</div>
+
+<form id="threats-form" data-nav-target="#notes" class="needs-validation">
+
+  <div class="form-group">
+    <label class="heading">Threats</label>
+    <table class="table table-striped" id="threats-table">
+      <colgroup>
+        <col style="width:20px" />
+        <col />
+        <col style="width:120px" />
+        <col style="width:70px" />
+        <col style="width:70px" />
+        <col style="width:80px" />
+        <col style="width:55px" />
+        <col style="width:40px" />
+        <col style="width:40px" />
+        <col style="width:45px" />
+        <col style="width:45px" />
+        <col style="width:20px" />
+      </colgroup>
+
+      <thead class="thead-light">
+        <tr>
+          <th class="text-center border-right-0"></th>
+          <th class="text-center border-left-0">Threat</th>
+          <th class="text-center">Report Name</th>
+          <th class="text-center">RWR</th>
+          <th class="text-center">TYPE</th>
+          <th class="text-center">TRACKER</th>
+          <th class="text-center">CMS</th>
+          <th class="text-center" colspan=2>RNG(nm)</th>
+          <th class="text-center" colspan=3>ALT(ft)</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+
+    <button class="btn btn-primary" id='threats-add' type="button">
+      <i data-feather="alert-triangle"></i>
+    </button>
+  </div>
+
+  <div class="form-group" id='threats-targets-group'>
+    <label class="heading">Targets</label>
+    <table class="table table-striped" id="threats-targets-table">
+      <colgroup>
+        <col style="width:20px" />
+        <col />
+        <col style="width:120px" />
+        <col style="width:70px" />
+        <col style="width:70px" />
+        <col style="width:80px" />
+        <col style="width:55px" />
+        <col style="width:40px" />
+        <col style="width:40px" />
+        <col style="width:45px" />
+        <col style="width:45px" />
+        <col style="width:20px" />
+      </colgroup>
+
+      <thead class="thead-light">
+        <tr>
+          <th class="text-center border-right-0"></th>
+          <th class="text-center border-left-0">Threat</th>
+          <th class="text-center">Report Name</th>
+          <th class="text-center">RWR</th>
+          <th class="text-center">TYPE</th>
+          <th class="text-center">TRACKER</th>
+          <th class="text-center">CMS</th>
+          <th class="text-center" colspan=2>RNG(nm)</th>
+          <th class="text-center" colspan=3>ALT(ft)</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+
+    <button class="btn btn-primary" id='threats-targets-add' type="button">
+      <i data-feather="alert-triangle"></i>
+    </button>
+  </div>
+
+  <div class="form-group" id='threats-prio-group'>
+    <label class="heading">Target Priorities</label>
+    <table class="table table-striped" id="threats-prio-table">
+      <colgroup>
+        <col style="width:20px" />
+        <col style="width:40px" />
+        <col />
+        <col />
+        <col />
+      </colgroup>
+
+      <thead class="thead-light">
+        <tr>
+          <th class="text-center border-right-0"></th>
+          <th class="text-center border-left-0">PRIO</th>
+          <th class="text-center">TYPE/OBJECT</th>
+          <th class="text-center">WEAPON MATCH</th>
+          <th class="text-center">REMARKS</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+
+    <button class="btn btn-primary" id='threats-prio-add' type="button">
+      <i data-feather="alert-triangle"></i>
+    </button>
+  </div>
+
+  <div style="text-align: right">
+    <button class="btn btn-primary" type="submit">Next...</button>
+  </div>
+</form>
+</div>

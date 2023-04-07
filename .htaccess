@@ -1,0 +1,33 @@
+<Files download>
+  SetHandler cgi-script 
+</Files>
+
+AddType application/octet-stream miz
+
+Header add Access-Control-Allow-Origin "*"
+Header add Access-Control-Allow-Headers "origin, x-requested-with, content-type"
+Header add Access-Control-Allow-Methods "PUT, GET, POST, DELETE, OPTIONS"
+
+Header always set Content-Security-Policy "default-src 'unsafe-inline' 'self' fonts.googleapis.com cdn.jsdelivr.net cdnjs.cloudflare.com code.jquery.com stackpath.bootstrapcdn.com fonts.gstatic.com data:; frame-ancestors 'none';"
+Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+Header always set X-Content-Type-Options nosniff
+
+Options +ExecCGI
+
+RewriteEngine on
+
+# If we're mdc.hatchlane.com, redirect to dcs-mdc.com
+RewriteCond %{HTTP_HOST} ^mdc.hatchlane.com$
+RewriteRule (.*) http://dcs-mdc.com/$1 [L,R,NE]
+
+# SET BASE to match our root; everything except a possible last element DC ID
+RewriteCond %{REQUEST_URI}::$1 ^(.*?/)(.*)::\2$
+RewriteRule ^(.*)$ - [E=BASE:%1]
+
+RewriteRule ^(venv|.git) - [F,L,NC]
+
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+RewriteRule ^([0-9a-zA-Z]{8})/(.*) %{ENV:BASE}$2 [L]
+RewriteRule ^([0-9a-zA-Z]{8})$ %{ENV:BASE}/index.php

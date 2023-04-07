@@ -1,0 +1,94 @@
+<div class="tab-pane active" id="loadout">
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+  <h1 class="h2">Loadout</h1>
+</div>
+<form id="loadout-form" data-nav-target="#profiles" class="needs-validation" >
+
+  <div id="loadout-container" >
+
+    <!-- image --> 
+    <div style="width:100%; height: 200px; overflow: hidden; background: #849a9c; position: relative" class="text-center">
+      <img style="height:100%" alt=img id="loadout-image" src="img/unknown.png" />
+    </div>
+
+    <table class="table table-striped" id="loadout-table">
+      <colgroup>
+      </colgroup>
+      <thead class="thead-light">
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+
+    <table class="table table-striped" id="loadout-preset-selector">
+      <colgroup>
+        <col style="width:60px">
+        <col />
+      </colgroup>
+      <thead class="thead-light">
+        <th>PRESET</th>
+        <td style="padding:0px">
+          <select class="input-full pylon-preset-select" id="pylon-preset-select" onchange="loadout_preset_apply(this);">
+            <option></option>
+          </select>
+        </td>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+
+    <table class="table table-striped" id="loadout-pyl-table">
+      <colgroup>
+        <col style="width:60px">
+        <col />
+        <col style="width:60px">
+      </colgroup>
+
+      <thead class="thead-light">
+        <th>PYL</th>
+        <th>WEAPON</th>
+        <th>LBS</th>
+      </thead>
+
+      <tbody>
+      </tbody>
+
+      <tfoot>
+        <tr>
+          <td colspan=2 style="border:0px; text-align: right; font-weight: bold">Total:</td>
+          <td id="loadout-table-weight" style="text-align: right">0</td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <table class="table table-striped" id="loadout-pyl-table-ah64">
+      <colgroup>
+        <col style="width:30px">
+        <col style="width:120px">
+        <col />
+        <col />
+        <col />
+        <col />
+        <col style="width:60px">
+      </colgroup>
+      <thead class="thead-light">
+        <th class="text-center">#</th>
+        <th>PRESET</th>
+        <th class="text-col-title">OUTR PYL L</th>
+        <th class="text-col-title">INNR PYL L</th>
+        <th class="text-col-title">INNR PYL R</th>
+        <th class="text-col-title">OUTR PYL R</th>
+        <th>LBS</th>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+
+    <div id="loadout-comments"></div>
+
+    <div style="text-align: right">
+      <button class="btn btn-primary" type="submit">Next...</button>
+    </div>
+  </div>
+</form>
+</div>

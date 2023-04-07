@@ -1,0 +1,204 @@
+{
+    "version": "2.0",
+    "data": {
+        "squadron": "1",
+        "mission": "1",
+        "side": "blue"
+    },
+    "mission": {
+        "mission-id": "",
+        "mission-desc": "",
+        "mission-callsign": "",
+        "mission-flight-number": "1",
+        "mission-pri-freq": null,
+        "mission-sec-freq": null,
+        "mission-ter-freq": null
+    },
+    "presets": {
+        "priority": [
+            "FM"
+        ],
+        "radios": {
+            "FM": {
+                "1": {
+                    "value": "30.000"
+                },
+                "2": {
+                    "value": "31.000"
+                },
+                "3": {
+                    "value": "32.000"
+                },
+                "4": {
+                    "value": "33.000"
+                },
+                "5": {
+                    "value": "40.000"
+                },
+                "6": {
+                    "value": "41.000"
+                },
+                "7": {
+                    "value": "42.000"
+                },
+                "8": {
+                    "value": "50.000"
+                }
+            }
+        }
+    },
+    "flight": {
+        "flight-airframe": "SA342M",
+        "flight-coord": "ddm",
+        "flight-coord-decimals": "3",
+        "members": [
+            {
+                "id": "1",
+                "pilot": "",
+                "tcn": "",
+                "lsr": "",
+                "lss": "",
+                "squawk": ""
+            }
+        ]
+    },
+    "package": {
+        "package-member": "package-false",
+        "package-name": "",
+        "members": []
+    },
+    "loadout": {
+        "flare": "32",
+        "fuel": "100",
+        "fuel_lbs": "918",
+        "joker": "200",
+        "bingo": "300",
+        "pylons": [
+            {
+                "pyl": "1",
+                "store": "",
+                "weight": 0,
+                "clsid": null
+            },
+            {
+                "pyl": "2",
+                "store": "",
+                "weight": 0,
+                "clsid": null
+            },
+            {
+                "pyl": "3",
+                "store": "",
+                "weight": 0,
+                "clsid": null
+            },
+            {
+                "pyl": "4",
+                "store": "",
+                "weight": 0,
+                "clsid": null
+            },
+            {
+                "pyl": "5",
+                "store": "",
+                "weight": 0,
+                "clsid": null
+            },
+            {
+                "pyl": "6",
+                "store": "",
+                "weight": 0,
+                "clsid": null
+            }
+        ],
+        "weights": {
+            "total": 4622,
+            "stores": 0,
+            "oew": 3704,
+            "mtow_field": 4630,
+            "mlw_field": 4630
+        }
+    },
+    "profiles": {
+        "notes": {
+            "html": "",
+            "title": "LOADOUT INFORMATION"
+        }
+    },
+    "deparr": {
+        "dep": {
+            "location": "",
+            "icao": "----",
+            "alt": "",
+            "tcn": "",
+            "par": null,
+            "atis": null,
+            "gnd": null,
+            "twr": null,
+            "ctrl": null,
+            "uhf": null,
+            "vhf": null
+        },
+        "alt": {
+            "usedep": true,
+            "location": "",
+            "icao": "----",
+            "alt": "",
+            "tcn": "",
+            "par": null,
+            "atis": null,
+            "gnd": null,
+            "twr": null,
+            "ctrl": null,
+            "uhf": null,
+            "vhf": null
+        },
+        "arr": {
+            "usedep": true,
+            "location": "",
+            "icao": "----",
+            "alt": "",
+            "tcn": "",
+            "par": null,
+            "atis": null,
+            "gnd": null,
+            "twr": null,
+            "ctrl": null,
+            "uhf": null,
+            "vhf": null
+        }
+    },
+    "waypoint": {
+        "walk-time": "18:00",
+        "to-time": "18:20",
+        "endurance": "",
+        "ete": "",
+        "transition-alt": "13000",
+        "transition-level": "150",
+        "gs-units": "kmh",
+        "bullseye": {
+            "name": "BULLS",
+            "lat": "42.186548742601",
+            "lon": "41.678934289736"
+        },
+        "waypoints": [],
+        "poi": []
+    },
+    "comms": {
+        "codewords": [],
+        "agencies": [],
+        "ramrod": "COMPLEXITY"
+    },
+    "threats": {
+        "threats": [],
+        "targets": [],
+        "priorities": []
+    },
+    "notes": {
+        "html": ""
+    },
+    "download": {
+        "template": "2022-05"
+    },
+    "key": "lGmF7hXR"
+}

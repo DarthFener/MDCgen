@@ -1,0 +1,39 @@
+<div class="tab-pane active" id="presets">
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+  <h1 class="h2">Presets</h1>
+</div>
+<form id="presets-form" data-nav-target="#deparr" class="needs-validation" >
+
+  <small class="form-text text-muted mb-2" style="padding-top:0" id='presets-not-editable-reason'>foo</small>
+
+  <div id="presets-container" class="pb-0">
+  </div>
+  <small class="form-text text-muted mb-2" style="padding-top:0">
+    * Note: changing side, mission or airframe will revert any changes made here, right click -&gt; reset to revert a preset
+  </small>
+
+  <div id='presets-missing-container' style='display:none'>
+    <div class="form-group">
+      <label>Frequencies referenced without presets</label>
+    </div>
+    <div >
+      <table class='table table-striped'>
+        <colgroup>
+          <col style='width: 65px'/>
+          <col/>
+        </colgroup>
+        <thead class='thead-light'>
+          <th>FREQ</th>
+          <th>AGENCY</th>
+        </thead>
+        <tbody id='presets-missing-table-body'>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="text-align: right">
+    <button class="btn btn-primary" type="submit">Next...</button>
+  </div>
+</form>
+</div>
